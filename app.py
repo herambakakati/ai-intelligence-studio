@@ -69,11 +69,13 @@ def load_data():
         st.error("❌ CSV files not found. Keep them in same folder as app.py")
         st.stop()
 
+    # Clean anime
     anime['rating'] = pd.to_numeric(anime.get('rating'), errors='coerce')
     anime['name'] = anime.get('name', "").astype(str)
     anime['content'] = anime.get('genre', "").astype(str) + " " + anime.get('type', "").astype(str)
     anime = anime.dropna(subset=['name']).reset_index(drop=True)
 
+    # Clean social
     social = social.fillna(social.median(numeric_only=True))
 
     return anime, social
@@ -112,7 +114,12 @@ def recommend(name, n):
         return pd.DataFrame()
 
     i = idx[name]
-    scores = sorted(list(enumerate(sim[i])), key=lambda x:x[1], reverse=True)[1:n+1]
+    scores = sorted(
+        list(enumerate(sim[i])),
+        key=lambda x: x[1],
+        reverse=True
+    )[1:n+1]
+
     return anime.iloc[[x[0] for x in scores]]
 
 def poster(title):
@@ -186,4 +193,4 @@ st.plotly_chart(fig, use_container_width=True)
 st.dataframe(df_cluster[mask].head(20))
 
 # ================= FOOTER =================
-st.markdown("⚠️ This app is for demo purposes.")
+st.markdown("⚠️ This app is for demo purposes. Validate results before use.")
