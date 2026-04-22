@@ -128,16 +128,12 @@ go = c3.button("🚀 Recommend")
 if go:
     res = recommend(sel,n)
     cols = st.columns(5)
-    for i,(_,r) in enumerate(res.iterrows()):
-        with cols[i%5]:
-            st.markdown(f"""
-            <div class="card">
-                <img src="{poster(r['name'])}">
-                <div class="overlay">
-                    <b>{r['name']}</b><br>⭐ {round(r['rating'],2)}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    cols = st.columns(5)
+for i,(_,r) in enumerate(res.iterrows()):
+    with cols[i % 5]:
+        st.image(poster(r['name']), use_container_width=True)
+        st.markdown(f"**{r['name']}**")
+        st.caption(f"⭐ {round(r['rating'],2)}")
 
 # =====================================================
 # 👥 SOCIAL CLUSTERING (FINAL + AI INSIGHT)
