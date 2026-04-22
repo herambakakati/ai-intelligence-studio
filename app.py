@@ -88,7 +88,7 @@ k3.markdown(f'<div class="kpi">Users<br><h2>{len(social)}</h2></div>', unsafe_al
 k4.markdown(f'<div class="kpi">Features<br><h2>{social.shape[1]}</h2></div>', unsafe_allow_html=True)
 
 # =====================================================
-# 🎬 ANIME SECTION (FIXED)
+# 🎬 ANIME SECTION
 # =====================================================
 st.markdown("""
 <div class="banner">
@@ -119,7 +119,7 @@ def poster(title):
     except:
         return "https://via.placeholder.com/300x420"
 
-# ===== FIXED UI =====
+# ===== INPUT UI =====
 with st.container():
     c1, c2, c3 = st.columns([4,1,1])
 
@@ -127,20 +127,34 @@ with st.container():
     n = c2.selectbox("Top N", [5,10], key="topn")
     go = c3.button("🚀 Recommend", key="btn")
 
-    if go:
-        res = recommend(sel, n)
-        cols = st.columns(5)
+# ===== STATE =====
+if "result" not in st.session_state:
+    st.session_state.result = None
 
-        for i,(_,r) in enumerate(res.iterrows()):
-            with cols[i % 5]:
-                st.markdown(f"""
-                <div class="card">
-                    <img src="{poster(r['name'])}">
-                    <div class="overlay">
-                        <b>{r['name']}</b><br>⭐ {round(r['rating'],2)}
-                    </div>
+if go:
+    st.session_state.result = recommend(sel, n)
+
+# ===== SEPARATOR =====
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("---")
+
+# ===== OUTPUT =====
+if st.session_state.result is not None:
+
+    st.markdown("### 🎬 Recommended Anime")
+
+    cols = st.columns(5)
+
+    for i,(_,r) in enumerate(st.session_state.result.iterrows()):
+        with cols[i % 5]:
+            st.markdown(f"""
+            <div class="card">
+                <img src="{poster(r['name'])}">
+                <div class="overlay">
+                    <b>{r['name']}</b><br>⭐ {round(r['rating'],2)}
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """, unsafe_allow_html=True)
 
 # =====================================================
 # 👥 SOCIAL CLUSTERING
