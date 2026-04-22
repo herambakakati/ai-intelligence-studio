@@ -88,7 +88,7 @@ k3.markdown(f'<div class="kpi">Users<br><h2>{len(social)}</h2></div>', unsafe_al
 k4.markdown(f'<div class="kpi">Features<br><h2>{social.shape[1]}</h2></div>', unsafe_allow_html=True)
 
 # =====================================================
-# 🎬 ANIME SECTION (FINAL FIXED)
+# 🎬 ANIME SECTION
 # =====================================================
 st.markdown("""
 <div class="banner">
@@ -112,6 +112,7 @@ def recommend(name, n):
     scores = sorted(list(enumerate(sim[i])), key=lambda x:x[1], reverse=True)[1:n+1]
     return anime.iloc[[x[0] for x in scores]]
 
+@st.cache_data
 def poster(title):
     try:
         url = f"https://api.jikan.moe/v4/anime?q={title}&limit=1"
@@ -125,7 +126,6 @@ if "result" not in st.session_state:
 
 # ===== INPUT =====
 c1, c2, c3 = st.columns([4,1,1])
-
 sel = c1.selectbox("Select Anime", anime['name'].head(300), key="anime")
 n = c2.selectbox("Top N", [5,10], key="topn")
 go = c3.button("🚀 Recommend", key="btn")
@@ -133,18 +133,27 @@ go = c3.button("🚀 Recommend", key="btn")
 if go:
     st.session_state.result = recommend(sel, n)
 
-# ===== OUTPUT =====
+# ===== OUTPUT (FIXED GRID) =====
 if st.session_state.result is not None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### 🎬 Recommended Anime")
 
-    cols = st.columns(5)
+    cards_per_row = 5
+    total = len(st.session_state.result)
 
-    for i,(_,r) in enumerate(st.session_state.result.iterrows()):
+    rows = [
+        st.columns(cards_per_row)
+        for _ in range((total + cards_per_row - 1) // cards_per_row)
+    ]
+
+    for idx_, (_, r) in enumerate(st.session_state.result.iterrows()):
+        row = rows[idx_ // cards_per_row]
+        col = row[idx_ % cards_per_row]
+
         rating = round(r['rating'],2) if r['rating'] > 0 else "N/A"
 
-        with cols[i % 5]:
+        with col:
             st.markdown(f"""
             <div class="card">
                 <img src="{poster(r['name'])}">
@@ -182,8 +191,18 @@ selected_cluster = st.selectbox("Select Segment", sorted(set(labels)))
 
 mask = labels == selected_cluster
 
-fig = px.scatter(x=X_pca[:,0], y=X_pca[:,1], color=labels.astype(str), template="plotly_dark")
-fig.add_scatter(x=X_pca[mask,0], y=X_pca[mask,1], mode='markers')
+fig = px.scatter(
+    x=X_pca[:,0],
+    y=X_pca[:,1],
+    color=labels.astype(str),
+    template="plotly_dark"
+)
+
+fig.add_scatter(
+    x=X_pca[mask,0],
+    y=X_pca[mask,1],
+    mode='markers'
+)
 
 st.plotly_chart(fig, use_container_width=True)
 st.dataframe(df_cluster[mask].head(20))
